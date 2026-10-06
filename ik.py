@@ -70,10 +70,22 @@ class InverseKinematics(Node):
     def interpolate_triangle(self, t):
         # Interpolate between the three triangle positions in self.ee_triangle_positions
         # based on the current time t
-        ################################################################################################
-        # TODO 5: Implement the interpolation function
-        ################################################################################################
-        return
+        adjusted_time = t % 3
+        vertex_times = np.array([0, 1, 2])
+        xs = self.ee_triangle_positions[:, 0]
+        ys = self.ee_triangle_positions[:, 1]
+        zs = self.ee_triangle_positions[:, 2]
+        if t < 1:
+            idx = [0, 1]   # touchdown -> liftoff
+        elif t < 2:
+            idx = [1, 2]   # liftoff -> mid-swing
+        else:
+            idx = [2, 0]   # mid-swing -> touchdown
+        x_new = np.interp(t, vertex_times[idx], xs[idx])
+        y_new = np.interp(t, vertex_times[idx], ys[idx])
+        z_new = np.interp(t, vertex_times[idx], zs[idx])
+
+        return [x_new,y_new,z_new]
 
     def ik_timer_callback(self):
         if self.joint_positions is not None:
@@ -82,9 +94,7 @@ class InverseKinematics(Node):
             current_ee = fr_leg_fk(self.joint_positions)
 
             # update the current time for the triangle interpolation
-            ################################################################################################
-            # TODO 6: Implement the time update
-            ################################################################################################
+            self.t += 0.1
 
             self.get_logger().info(f'Target EE: {target_ee}, Current EE: {current_ee}, Target Angles: {self.target_joint_positions}, Target Angles to EE: {fr_leg_fk(self.target_joint_positions)}, Current Angles: {self.joint_positions}')
 
