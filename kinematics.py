@@ -189,6 +189,28 @@ class LegKinematics:
 
         return end_effector_position[:3]
 
+        ## TODO: Implement the forward kinematics of the back-right leg, following the same
+        ## structure as fk_front_left (T_0_1, T_1_2, T_2_3, T_3_ee, T_0_ee). See the hip origin table above.
+
+        # T_0_1 (base_link to leg_back_r_1)
+        T_0_1 = translation(-0.07500, -0.03350, 0.0) @ rotation_x(1.57080) @ rotation_z(theta1)
+
+        # T_1_2 (leg_back_r_1 to leg_back_r_2)
+        T_1_2 = translation(0.0, 0.0, 0.039) @ rotation_y(-1.57080) @ rotation_z(theta2)
+
+        # T_2_3 (leg_back_r_2 to leg_back_r_3)
+        T_2_3 = translation(0.0, -0.0494, 0.0685) @ rotation_y(1.57080) @ rotation_z(theta3)
+
+        # T_3_ee (leg_back_r_3 to end-effector)
+        T_3_ee = translation(0.06231, -0.06216, 0.018)
+
+        # Compute the final transformation
+        T_0_ee = T_0_1 @ T_1_2 @ T_2_3 @ T_3_ee
+
+        # Extract the end-effector position
+        end_effector_position = T_0_ee @ (0, 0, 0, 1)
+
+        return end_effector_position[:3]
 
 _legs = LegKinematics()
 
@@ -230,14 +252,14 @@ def inverse_kinematics(leg_fk, target_ee, initial_guess=(0, 0, 0),
         ################################################################################################
         # TODO 2: Implement the cost function using leg_fk
         ################################################################################################
-        return None, None
+        return np.power(leg_fk(theta) - target_ee, 2).sum(), np.abs(leg_fk(theta) - target_ee)
 
     def gradient(theta, epsilon=1e-3):
         # Compute the gradient of the cost function using finite differences
         ################################################################################################
         # TODO 3: Implement the gradient computation
         ################################################################################################
-        return
+        return (cost_function(theta + epsilon)[1] - cost_function(theta - epsilon)[1]) / (2 * epsilon)
 
     theta = np.array(initial_guess).astype(np.float64)
 
@@ -252,6 +274,9 @@ def inverse_kinematics(leg_fk, target_ee, initial_guess=(0, 0, 0),
         # TODO (BONUS): Implement the (quasi-)Newton's method instead of finite differences for faster
         # convergence
         ################################################################################################
+        theta -= learning_rate * grad
+        if (np.sum(cost_function(theta)[1]) * 1/3 < tolerance):
+            break
 
     # print(f'Cost: {cost_l}') # Use to debug to see if your cost function converges within max_iterations
 
