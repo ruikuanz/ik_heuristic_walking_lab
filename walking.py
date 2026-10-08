@@ -148,7 +148,16 @@ class InverseKinematics(Node):
         # six keyframes instead of three.
         ################################################################################################
 
-        return
+        # Interpolate between the three triangle positions in self.ee_triangle_positions
+        # based on the current time t
+
+        positions = self.ee_triangle_positions[leg_index]
+        vertex_times = np.linspace(0, 1, 6)
+        x_new = np.interp(t, vertex_times, positions[:, 0], period=6)
+        y_new = np.interp(t, vertex_times, positions[:, 1], period=6)
+        z_new = np.interp(t, vertex_times, positions[:, 2], period=6)
+        return [x_new, y_new, z_new]
+
 
     def cache_target_joint_positions(self):
         # Calculate and store the target joint positions for a cycle and all 4 legs
