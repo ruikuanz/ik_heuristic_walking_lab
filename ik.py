@@ -71,20 +71,29 @@ class InverseKinematics(Node):
         # Interpolate between the three triangle positions in self.ee_triangle_positions
         # based on the current time t
         adjusted_time = t % 3
-        vertex_times = np.array([0, 1, 2])
-        xs = self.ee_triangle_positions[:, 0]
-        ys = self.ee_triangle_positions[:, 1]
-        zs = self.ee_triangle_positions[:, 2]
-        if t < 1:
+        # vertex_times = np.array([0, 1, 2])
+        vertex_times = np.array([0, 1, 2, 3])
+        xs = np.append(
+            self.ee_triangle_positions[:, 0],
+            self.ee_triangle_positions[0, 0]
+            )
+        ys = np.append(
+            self.ee_triangle_positions[:, 1],
+            self.ee_triangle_positions[0, 1]
+            )
+        zs = np.append(
+            self.ee_triangle_positions[:, 2],
+            self.ee_triangle_positions[0, 2]
+            )
+        if adjusted_time < 1:
             idx = [0, 1]   # touchdown -> liftoff
-        elif t < 2:
+        elif adjusted_time < 2:
             idx = [1, 2]   # liftoff -> mid-swing
         else:
-            idx = [2, 0]   # mid-swing -> touchdown
-        x_new = np.interp(t, vertex_times[idx], xs[idx])
-        y_new = np.interp(t, vertex_times[idx], ys[idx])
-        z_new = np.interp(t, vertex_times[idx], zs[idx])
-
+            idx = [2, 3]   # mid-swing -> touchdown
+        x_new = np.interp(adjusted_time, vertex_times[idx], xs[idx])
+        y_new = np.interp(adjusted_time, vertex_times[idx], ys[idx])
+        z_new = np.interp(adjusted_time, vertex_times[idx], zs[idx])
         return [x_new,y_new,z_new]
 
     def ik_timer_callback(self):
@@ -94,7 +103,7 @@ class InverseKinematics(Node):
             current_ee = fr_leg_fk(self.joint_positions)
 
             # update the current time for the triangle interpolation
-            self.t += 0.1
+            self.t += self.ik_timer_period
 
             self.get_logger().info(f'Target EE: {target_ee}, Current EE: {current_ee}, Target Angles: {self.target_joint_positions}, Target Angles to EE: {fr_leg_fk(self.target_joint_positions)}, Current Angles: {self.joint_positions}')
 

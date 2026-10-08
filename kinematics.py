@@ -189,29 +189,6 @@ class LegKinematics:
 
         return end_effector_position[:3]
 
-        ## TODO: Implement the forward kinematics of the back-right leg, following the same
-        ## structure as fk_front_left (T_0_1, T_1_2, T_2_3, T_3_ee, T_0_ee). See the hip origin table above.
-
-        # T_0_1 (base_link to leg_back_r_1)
-        T_0_1 = translation(-0.07500, -0.03350, 0.0) @ rotation_x(1.57080) @ rotation_z(theta1)
-
-        # T_1_2 (leg_back_r_1 to leg_back_r_2)
-        T_1_2 = translation(0.0, 0.0, 0.039) @ rotation_y(-1.57080) @ rotation_z(theta2)
-
-        # T_2_3 (leg_back_r_2 to leg_back_r_3)
-        T_2_3 = translation(0.0, -0.0494, 0.0685) @ rotation_y(1.57080) @ rotation_z(theta3)
-
-        # T_3_ee (leg_back_r_3 to end-effector)
-        T_3_ee = translation(0.06231, -0.06216, 0.018)
-
-        # Compute the final transformation
-        T_0_ee = T_0_1 @ T_1_2 @ T_2_3 @ T_3_ee
-
-        # Extract the end-effector position
-        end_effector_position = T_0_ee @ (0, 0, 0, 1)
-
-        return end_effector_position[:3]
-
 _legs = LegKinematics()
 
 
@@ -236,7 +213,8 @@ LEG_FK = [fr_leg_fk, fl_leg_fk, br_leg_fk, bl_leg_fk]
 
 
 def inverse_kinematics(leg_fk, target_ee, initial_guess=(0, 0, 0),
-                       learning_rate=None, max_iterations=None, tolerance=None):
+                       learning_rate=5, max_iterations=100, tolerance=0.001):
+    # max_iterations controls how smoothly the leg moves 
     """Joint angles that put leg_fk's foot at target_ee, found by gradient descent.
 
     leg_fk is one of the FK functions above, so the same solver works for every leg.
@@ -259,7 +237,11 @@ def inverse_kinematics(leg_fk, target_ee, initial_guess=(0, 0, 0),
         ################################################################################################
         # TODO 3: Implement the gradient computation
         ################################################################################################
-        return (cost_function(theta + epsilon)[1] - cost_function(theta - epsilon)[1]) / (2 * epsilon)
+
+        d_theta1 = (cost_function(theta + np.array([epsilon, 0, 0]))[0] - cost_function(theta - np.array([epsilon, 0, 0]))[0]) / (2 * epsilon)
+        d_theta2 = (cost_function(theta + np.array([0, epsilon, 0]))[0] - cost_function(theta - np.array([0, epsilon, 0]))[0]) / (2 * epsilon)
+        d_theta3 = (cost_function(theta + np.array([0, 0, epsilon]))[0] - cost_function(theta - np.array([0, 0, epsilon]))[0]) / (2 * epsilon)
+        return np.array([d_theta1, d_theta2, d_theta3])
 
     theta = np.array(initial_guess).astype(np.float64)
 

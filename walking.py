@@ -74,7 +74,7 @@ class InverseKinematics(Node):
            stand_position_1, 
            stand_position_2,
            stand_position_3,
-           liftoff_position,
+           liftoff_position,    
            mid_swing_position
         ]) + rf_ee_offset
 
