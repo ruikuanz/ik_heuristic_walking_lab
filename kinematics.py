@@ -212,7 +212,7 @@ def bl_leg_fk(theta):
 LEG_FK = [fr_leg_fk, fl_leg_fk, br_leg_fk, bl_leg_fk]
 
 
-def inverse_kinematics(leg_fk, target_ee, initial_guess=(0, 0, 0),
+def inverse_kinematics(leg_fk, target_ee, initial_guess=(0,0,0),
                        learning_rate=5, max_iterations=100, tolerance=0.001):
     # max_iterations controls how smoothly the leg moves 
     """Joint angles that put leg_fk's foot at target_ee, found by gradient descent.
@@ -231,6 +231,7 @@ def inverse_kinematics(leg_fk, target_ee, initial_guess=(0, 0, 0),
         # TODO 2: Implement the cost function using leg_fk
         ################################################################################################
         return np.power(leg_fk(theta) - target_ee, 2).sum(), np.abs(leg_fk(theta) - target_ee)
+        # L2 norm squared 
 
     def gradient(theta, epsilon=1e-3):
         # Compute the gradient of the cost function using finite differences
@@ -246,6 +247,7 @@ def inverse_kinematics(leg_fk, target_ee, initial_guess=(0, 0, 0),
     theta = np.array(initial_guess).astype(np.float64)
 
     cost_l = []
+    # gradient descent 
     for _ in range(max_iterations):
         grad = gradient(theta)
 

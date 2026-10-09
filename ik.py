@@ -70,23 +70,22 @@ class InverseKinematics(Node):
     def interpolate_triangle(self, t):
         # Interpolate between the three triangle positions in self.ee_triangle_positions
         # based on the current time t
-        vertex_times = np.array([0, 1, 2])
-        P = self.ee_triangle_positions
-        x_new = np.interp(t, vertex_times, P[:, 0], period=3)
-        y_new = np.interp(t, vertex_times, P[:, 1], period=3)
-        z_new = np.interp(t, vertex_times, P[:, 2], period=3)
-        return [x_new, y_new, z_new]
+        # vertex_times = np.array([0, 1, 2])
+        # P = self.ee_triangle_positions
+        # x_new = np.interp(t, vertex_times, P[:, 0], period=3)
+        # y_new = np.interp(t, vertex_times, P[:, 1], period=3)
+        # z_new = np.interp(t, vertex_times, P[:, 2], period=3)
+        # return [x_new, y_new, z_new]
 
-        '''
-        For our own edification:
+
         t %= 3
         vertex_times = np.array([0, 1, 2, 3])
         P = np.vstack([self.ee_triangle_positions, self.ee_triangle_positions[0]]) # wrap around to the first vertex for times
-        x_new = np.interp(t % 3, vertex_times, P[:, 0])
-        y_new = np.interp(t % 3, vertex_times, P[:, 1])
-        z_new = np.interp(t % 3, vertex_times, P[:, 2])
+        x_new = np.interp(t, vertex_times, P[:, 0])
+        y_new = np.interp(t, vertex_times, P[:, 1])
+        z_new = np.interp(t, vertex_times, P[:, 2])
         return [x_new, y_new, z_new]
-        '''
+
 
     def ik_timer_callback(self):
         if self.joint_positions is not None:
